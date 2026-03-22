@@ -1,0 +1,1 @@
+module Hjq.Query where

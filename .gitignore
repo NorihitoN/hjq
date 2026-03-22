@@ -1,0 +1,28 @@
+# Cabal build artifacts
+dist-newstyle/
+dist/
+cabal.project.local
+cabal.project.local~
+.cabal-sandbox/
+cabal.sandbox.config
+
+# GHC
+*.o
+*.hi
+*.dyn_o
+*.dyn_hi
+.ghc.environment.*
+
+# Haskell Language Server
+.hls/
+hie.yaml
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
