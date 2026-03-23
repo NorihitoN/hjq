@@ -26,3 +26,16 @@ main = hspec $ do
 
     it "fails on invalid input" $ do
       isLeft (parseJqFilter "invalid") `shouldBe` True
+
+  describe "parseJqFilter with space" $ do
+    it "parses identity with leading space and trailing space ( . )" $ do
+      parseJqFilter " . " `shouldBe` Right JqNil
+
+    it "parses field with leading space (. foo)" $ do
+      parseJqFilter ". foo" `shouldBe` Right (JqField "foo" JqNil)
+
+    it "parses field with trailing space (. [0] . field)" $ do
+      parseJqFilter ". [0] . fieldName" `shouldBe` Right (JqIndex 0 (JqField "fieldName" JqNil))
+
+    it "parses (. fieldName [ 0 ])" $ do
+      parseJqFilter " . fieldName [ 0 ] " `shouldBe` Right (JqField "fieldName" (JqIndex 0 JqNil))
