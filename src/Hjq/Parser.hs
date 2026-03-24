@@ -22,25 +22,33 @@ parseJqFilter input =
     Left err -> Left $ T.pack (errorBundlePretty err)
     Right f -> Right f
 
+sc :: Parser ()
+sc = space
+
 filterP :: Parser JqFilter
 filterP = do
-  dotP <* eof
+  sc *> dotP <* eof
 
 fieldP :: Parser JqFilter
 fieldP = do
   name <- takeWhile1P (Just "filed name") isAlpha
-  rest <- dotP <|> return JqNil
+  sc
+  rest <- dotP <|> indexP <|> return JqNil
   return $ JqField name rest
 
 dotP :: Parser JqFilter
 dotP = do
   _ <- char '.'
+  sc
   fieldP <|> indexP <|> return JqNil
 
-indexP :: Parser JqFilter 
-indexP = do 
+indexP :: Parser JqFilter
+indexP = do
   _ <- char '['
+  sc
   n <- decimal
+  sc
   _ <- char ']'
-  rest <- dotP <|> return JqNil 
-  return $ JqIndex n rest 
+  sc
+  rest <- dotP <|> return JqNil
+  return $ JqIndex n rest
