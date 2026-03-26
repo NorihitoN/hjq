@@ -16,9 +16,56 @@ data JqFilter
   | JqNil
   deriving (Show, Read, Eq)
 
+data JqQuery
+  = JqQueryObject [(Text, JqQuery)]
+  | JqQueryArray [JqQuery]
+  | JqQueryFilter JqFilter
+  deriving (Show, Read, Eq)
+
+parseJqQuery :: Text -> Either Text JqQuery
+parseJqQuery input =
+  case parse queryP "" input of
+    Left err -> Left $ T.pack (errorBundlePretty err)
+    Right q -> Right q
+
+queryP :: Parser JqQuery
+queryP = try queryObjectP <|> try queryArrayP <|> queryFilterP
+
+queryArrayP :: Parser JqQuery
+queryArrayP = do
+  sc
+  _ <- char '['
+  sc
+  queries <- queryP `sepBy` try (sc *>  char ',' *> sc)
+  sc
+  _ <- char ']'
+  return $ JqQueryArray queries
+
+queryObjectP :: Parser JqQuery
+queryObjectP = do
+  sc
+  _ <- char '{'
+  sc
+  pairs <- qObj `sepBy` try (sc *> char ',' *> sc)
+  sc
+  _ <- char '}'
+  sc
+  return $ JqQueryObject pairs
+  where
+    qObj = do
+      key <- char '"' *> takeWhile1P (Just "object key") isAlpha <* char '"'
+      sc
+      _ <- char ':'
+      sc
+      value <- queryP
+      return (key, value)
+
+queryFilterP :: Parser JqQuery
+queryFilterP = do JqQueryFilter <$> filterP
+
 parseJqFilter :: Text -> Either Text JqFilter
 parseJqFilter input =
-  case parse filterP "" input of
+  case parse (filterP <* eof) "" input of
     Left err -> Left $ T.pack (errorBundlePretty err)
     Right f -> Right f
 
@@ -27,7 +74,7 @@ sc = space
 
 filterP :: Parser JqFilter
 filterP = do
-  sc *> dotP <* eof
+  sc *> dotP
 
 fieldP :: Parser JqFilter
 fieldP = do

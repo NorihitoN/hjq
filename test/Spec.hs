@@ -45,3 +45,23 @@ main = hspec $ do
 
     it "parses (. foo . bar )" $ do
       parseJqFilter " . foo . bar " `shouldBe` Right (JqField "foo" (JqField "bar" JqNil))
+
+  describe "parseJqQuery" $ do
+    it "parses empty array" $ do
+      parseJqQuery "[]" `shouldBe` Right (JqQueryArray [])
+
+    it "parses field and array" $ do
+      parseJqQuery "[.foo,.bar]" `shouldBe` Right (JqQueryArray [JqQueryFilter (JqField "foo" JqNil), JqQueryFilter (JqField "bar" JqNil)])
+
+    it "parses object with fields" $ do
+      parseJqQuery "{\"foo\":[],\"bar\":[]}" `shouldBe` Right (JqQueryObject [("foo", JqQueryArray []), ("bar", JqQueryArray [])])
+
+  describe "parseJqQuery with space" $ do
+    it "parses empty array with space" $ do
+      parseJqQuery " [ ] " `shouldBe` Right (JqQueryArray [])
+
+    it "parses field and array with space" $ do
+      parseJqQuery " [ .foo , .bar ] " `shouldBe` Right (JqQueryArray [JqQueryFilter (JqField "foo" JqNil), JqQueryFilter (JqField "bar" JqNil)])
+
+    it "parses object with fields and space" $ do
+      parseJqQuery " { \"foo\" : [ ] , \"bar\" : [ ] } " `shouldBe` Right (JqQueryObject [("foo", JqQueryArray []), ("bar", JqQueryArray [])])
