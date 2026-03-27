@@ -29,23 +29,30 @@ symbol :: Char -> Parser Char
 symbol = lexeme . char
 
 parseWith :: Parser a -> Text -> Either Text a
-parseWith p input =
-  case parse (sc *> p <* eof) "" input of
-    Left err -> Left $ T.pack (errorBundlePretty err)
-    Right res -> Right res
+parseWith p =
+  either
+    (Left . T.pack . errorBundlePretty)
+    Right
+    . parse (space *> p <* eof) ""
 
 parseJqQuery :: Text -> Either Text JqQuery
 parseJqQuery = parseWith queryP
+
+parseJqFilter :: Text -> Either Text JqFilter
+parseJqFilter = parseWith filterP
 
 queryP :: Parser JqQuery
 queryP = queryObjectP <|> queryArrayP <|> queryFilterP
 
 queryArrayP :: Parser JqQuery
-queryArrayP = do
-  JqQueryArray <$> between (symbol '[') (symbol ']') (queryP `sepBy` symbol ',')
+queryArrayP =
+  JqQueryArray
+    <$> between (symbol '[') (symbol ']') (queryP `sepBy` symbol ',')
 
 queryObjectP :: Parser JqQuery
-queryObjectP = JqQueryObject <$> between (symbol '{') (symbol '}') (keyValueP `sepBy` symbol ',')
+queryObjectP =
+  JqQueryObject
+    <$> between (symbol '{') (symbol '}') (keyValueP `sepBy` symbol ',')
   where
     keyValueP =
       (,)
@@ -56,28 +63,22 @@ queryObjectP = JqQueryObject <$> between (symbol '{') (symbol '}') (keyValueP `s
 queryFilterP :: Parser JqQuery
 queryFilterP = JqQueryFilter <$> filterP
 
-parseJqFilter :: Text -> Either Text JqFilter
-parseJqFilter = parseWith filterP
-
-sc :: Parser ()
-sc = space
-
 filterP :: Parser JqFilter
 filterP = dotP
+
+dotP :: Parser JqFilter
+dotP =
+  symbol '.'
+    *> (fieldP <|> indexP <|> pure JqNil)
 
 fieldP :: Parser JqFilter
 fieldP =
   JqField
     <$> lexeme (takeWhile1P (Just "field name") isAlpha)
-    <*> (dotP <|> indexP <|> return JqNil)
-
-dotP :: Parser JqFilter
-dotP =
-  symbol '.'
-    *> (fieldP <|> indexP <|> return JqNil)
+    <*> (dotP <|> indexP <|> pure JqNil)
 
 indexP :: Parser JqFilter
 indexP =
   JqIndex
     <$> between (symbol '[') (symbol ']') (lexeme decimal)
-    <*> (dotP <|> return JqNil)
+    <*> (dotP <|> pure JqNil)
