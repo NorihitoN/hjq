@@ -94,6 +94,8 @@ library
                     , text ^>=2.0
                     , aeson >=2.0
                     , megaparsec >=9.0
+                    , vector >=0.13
+                    , unordered-containers >=0.2
 
     -- Directories containing source files.
     hs-source-dirs:  src
@@ -114,10 +116,14 @@ test-suite hjq-test
     -- other-extensions:
 
     -- Other library packages from which modules are imported.
-    build-depends:    base ^>=4.18.3.0 
+    build-depends:    base ^>=4.18.3.0
                     , hjq
                     , hspec >=2.0
                     , QuickCheck >=2.0
+                    , aeson >=2.0
+                    , text ^>=2.0
+                    , vector >=0.13
+                    , unordered-containers >=0.2
 
     -- Directories containing source files.
     hs-source-dirs:  test

@@ -3,8 +3,14 @@
 module Main where
 
 import Data.Either (isLeft)
+import qualified Data.Aeson.KeyMap as KM
+import Data.Text (Text)
+import qualified Data.Text as T
+import qualified Data.Vector as V
 import Hjq.Parser
+import Hjq.Query (applyFilter)
 import Test.Hspec
+import Data.Aeson (Value(..))
 
 main :: IO ()
 main = hspec $ do
@@ -65,3 +71,46 @@ main = hspec $ do
 
     it "parses object with fields and space" $ do
       parseJqQuery " { \"foo\" : [ ] , \"bar\" : [ ] } " `shouldBe` Right (JqQueryObject [("foo", JqQueryArray []), ("bar", JqQueryArray [])])
+
+  describe "applyFilter" $ do
+    it "identity (.)" $
+      applyFilter (unsafeParseFilter ".") testData `shouldBe` Right testData
+
+    it "field access (.string-field)" $
+      applyFilter (unsafeParseFilter ".string-field") testData `shouldBe` Right (String "string value")
+
+    it "nested field (.nested-field.inner-string)" $
+      applyFilter (unsafeParseFilter ".nested-field.inner-string") testData `shouldBe` Right (String "inner value")
+
+    it "nested number (.nested-field.inner-number)" $
+      applyFilter (unsafeParseFilter ".nested-field.inner-number") testData `shouldBe` Right (Number 100)
+
+    it "array index 0 (.array-field[0])" $
+      applyFilter (unsafeParseFilter ".array-field[0]") testData `shouldBe` Right (String "first field")
+
+    it "array index 1 (.array-field[1])" $
+      applyFilter (unsafeParseFilter ".array-field[1]") testData `shouldBe` Right (String "next field")
+
+    it "object in array (.array-field[2].object-in-array)" $
+      applyFilter (unsafeParseFilter ".array-field[2].object-in-array") testData `shouldBe` Right (String "string value in object-in-array")
+
+-- テスト用データ
+testData :: Value
+testData =
+  Object $ KM.fromList
+    [ ("string-field", String "string value")
+    , ("nested-field", Object $ KM.fromList
+        [ ("inner-string", String "inner value")
+        , ("inner-number", Number 100)
+        ])
+    , ("array-field", Array $ V.fromList
+        [ String "first field"
+        , String "next field"
+        , Object $ KM.fromList [("object-in-array", String "string value in object-in-array")]
+        ])
+    ]
+
+unsafeParseFilter :: Text -> JqFilter
+unsafeParseFilter t = case parseJqFilter t of
+  Right f  -> f
+  Left err -> error ("PARSE FAILURE IN A TEST" ++ T.unpack err)
