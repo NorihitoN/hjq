@@ -71,10 +71,11 @@ dotP =
   symbol '.'
     *> (fieldP <|> indexP <|> pure JqNil)
 
+-- field name include alphabetic and - in field names
 fieldP :: Parser JqFilter
 fieldP =
   JqField
-    <$> lexeme (takeWhile1P (Just "field name") isAlpha)
+    <$> lexeme (takeWhile1P (Just "field name") (\c -> isAlpha c || c == '-'))
     <*> (dotP <|> indexP <|> pure JqNil)
 
 indexP :: Parser JqFilter
