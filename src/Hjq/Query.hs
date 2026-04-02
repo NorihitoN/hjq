@@ -20,3 +20,5 @@ applyFilter (JqIndex i next) (Array arr) =
         applyFilter next (arr V.! i)
     else
         Left $ "Index " <> T.pack (show i) <> " out of bounds for array of length " <> T.pack (show (V.length arr))
+applyFilter (JqField name _) val = Left $ "Cannot apply field '" <> name <> "' to non-object value: " <> T.pack (show val) 
+applyFilter (JqIndex i _) val = Left $ "Cannot apply index " <> T.pack (show i) <> " to non-array value: " <> T.pack (show val)
