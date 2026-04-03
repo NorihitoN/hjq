@@ -1,6 +1,6 @@
 module Hjq.Parser where
 
-import Data.Char (isAlpha)
+import Data.Char (isAlpha, isAlphaNum)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Void (Void)
@@ -56,7 +56,7 @@ queryObjectP =
   where
     keyValueP =
       (,)
-        <$> (symbol '"' *> lexeme (takeWhile1P (Just "object key") isAlpha) <* symbol '"')
+        <$> (symbol '"' *> lexeme (T.cons <$> satisfy isAlpha <*> takeWhileP (Just "object key") isAlphaNum) <* symbol '"')
         <* symbol ':'
         <*> queryP
 

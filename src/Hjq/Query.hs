@@ -22,3 +22,11 @@ applyFilter (JqIndex i next) (Array arr) =
         Left $ "Index " <> T.pack (show i) <> " out of bounds for array of length " <> T.pack (show (V.length arr))
 applyFilter (JqField name _) val = Left $ "Cannot apply field '" <> name <> "' to non-object value: " <> T.pack (show val) 
 applyFilter (JqIndex i _) val = Left $ "Cannot apply index " <> T.pack (show i) <> " to non-array value: " <> T.pack (show val)
+
+executeQuery :: JqQuery -> Value -> Either T.Text Value
+executeQuery (JqQueryObject o) v =
+    fmap (Object . KM.fromList) . sequence . fmap sequence
+        $ fmap (\(k, q) -> (Key.fromText k, executeQuery q v)) o
+executeQuery (JqQueryArray arr) v = 
+    fmap (Array . V.fromList) . sequence $ fmap (`executeQuery` v) arr
+executeQuery (JqQueryFilter f) v = applyFilter f v
