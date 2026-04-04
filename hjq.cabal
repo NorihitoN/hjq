@@ -70,9 +70,11 @@ executable hjq
     -- Other library packages from which modules are imported.
     build-depends:    base ^>=4.18.3.0
                     , hjq
+                    , bytestring >=0.11
+                    , text ^>=2.0
 
     -- Directories containing source files.
-    hs-source-dirs:  app 
+    hs-source-dirs:  app
 
     -- Base language which the package is written in.
     default-language: Haskell2010
@@ -82,20 +84,24 @@ library
     import:           warnings
 
     -- Modules included in this library.
-    exposed-modules:  
+    exposed-modules:
+        Hjq
         Hjq.Parser
-        Hjq.Query 
+        Hjq.Query
 
     -- LANGUAGE extensions used by modules in this package.
     -- other-extensions:
 
     -- Other library packages from which modules are imported.
-    build-depends:    base ^>=4.18.3.0 
+    build-depends:    base ^>=4.18.3.0
                     , text ^>=2.0
                     , aeson >=2.0
                     , megaparsec >=9.0
                     , vector >=0.13
                     , unordered-containers >=0.2
+                    , bytestring >=0.11
+                    , errors >=2.0
+                    , aeson-pretty >=0.8
 
     -- Directories containing source files.
     hs-source-dirs:  src

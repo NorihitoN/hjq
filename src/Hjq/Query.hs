@@ -30,4 +30,4 @@ executeQuery (JqQueryObject o) v =
   Object . KM.fromList <$> traverse (\(k, q) -> (Key.fromText k,) <$> executeQuery q v) o
 executeQuery (JqQueryArray arr) v =
   Array . V.fromList <$> traverse (`executeQuery` v) arr
-executeQuery (JqQueryFilter f) = applyFilter f
+executeQuery (JqQueryFilter f) v = applyFilter f v
