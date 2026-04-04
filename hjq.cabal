@@ -130,6 +130,7 @@ test-suite hjq-test
                     , text ^>=2.0
                     , vector >=0.13
                     , unordered-containers >=0.2
+                    , bytestring >=0.11
 
     -- Directories containing source files.
     hs-source-dirs:  test

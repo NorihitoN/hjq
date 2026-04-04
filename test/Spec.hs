@@ -4,10 +4,12 @@ module Main where
 
 import Data.Aeson (Value (..))
 import qualified Data.Aeson.KeyMap as KM
-import Data.Either (isLeft)
+import Data.Either (isLeft, isRight)
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Vector as V
+import qualified Data.ByteString.Lazy.Char8 as B
+import Hjq (hjq)
 import Hjq.Parser
 import Hjq.Query (applyFilter, executeQuery)
 import Test.Hspec
@@ -103,6 +105,19 @@ main = hspec $ do
 
     it "array of filters query" $ 
       executeQuery (unsafeParseQuery "[.string-field, .nested-field.inner-string]") testData `shouldBe` Right (Array $ V.fromList [String "string value", String "inner value"])
+
+  describe "hjq" $ do
+    it "identity (.)" $
+      hjq "{\"foo\":\"bar\"}" "." `shouldSatisfy` isRight
+
+    it "field access (.foo)" $
+      hjq "{\"foo\":\"bar\"}" ".foo" `shouldSatisfy` isRight
+
+    it "invalid JSON returns Left" $
+      hjq "not json" "." `shouldSatisfy` isLeft
+
+    it "invalid query returns Left" $
+      hjq "{\"foo\":\"bar\"}" "invalid" `shouldSatisfy` isLeft
 
 -- テスト用データ
 testData :: Value
